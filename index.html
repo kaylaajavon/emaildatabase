@@ -692,6 +692,32 @@
   .empty-state p { font-size: 15px; font-weight: 600; }
   .empty-state .encourage { font-size: 13px; color: var(--primary); margin-top: 6px; }
 
+  /* ─── Loading Spinner ─── */
+  .loading-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-light);
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-state p { font-size: 14px; font-weight: 600; }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   /* ─── Confirmation Modal ─── */
   .modal-overlay {
     display: none;
@@ -1014,15 +1040,18 @@
 
 <script>
 (function() {
-  /* ─── Constants ─── */
-  const STORAGE_KEY = 'ig_snippets';
-  const CAT_KEY = 'ig_categories';
+  /* ─── Google Sheets API ─── */
+  const API_URL = 'https://script.google.com/a/macros/refugepoint.org/s/AKfycbx-7ur9KAhQmNJk_H3VmEhHKua_AtCdn8rzyeB4sirkKv30xXIPT3u5EX-GeOTC5ZryAg/exec';
   const DEFAULT_CATS = ['Qualification', 'Cultivation', 'Solicitation'];
 
   const CAT_COLORS = [
     '#D4856A', '#7CB884', '#6E9FD4', '#C07EC0', '#D4B86A',
     '#5BBCAD', '#D46A9F', '#7E8BD4', '#D49F6A', '#6AC4C4'
   ];
+
+  /* ─── In-memory cache (refreshed from Google Sheets) ─── */
+  let cachedEmails = [];
+  let cachedCategories = [...DEFAULT_CATS];
 
   /* ─── Encouraging Messages ─── */
   const ENCOURAGEMENTS = [
@@ -1060,36 +1089,68 @@
 
   function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-  /* ─── Storage Helpers ─── */
-  function loadCategories() {
+  /* ─── API Helpers ─── */
+  async function apiGet(action) {
     try {
-      const s = localStorage.getItem(CAT_KEY);
-      if (s) return JSON.parse(s);
-    } catch(e) {}
-    const c = [...DEFAULT_CATS];
-    localStorage.setItem(CAT_KEY, JSON.stringify(c));
-    return c;
+      const res = await fetch(API_URL + '?action=' + action);
+      const data = await res.json();
+      return data;
+    } catch(e) {
+      console.error('API GET error:', e);
+      return { status: 'error', data: [] };
+    }
   }
 
-  function saveCategories(c) { localStorage.setItem(CAT_KEY, JSON.stringify(c)); }
-
-  function loadEmails() {
+  async function apiPost(body) {
     try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      return s ? JSON.parse(s) : [];
-    } catch(e) { return []; }
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      return data;
+    } catch(e) {
+      console.error('API POST error:', e);
+      return { status: 'error' };
+    }
   }
 
-  function saveEmails(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+  async function fetchEmails() {
+    const res = await apiGet('getEmails');
+    if (res.status === 'success') {
+      cachedEmails = res.data.map(r => ({
+        id: String(r.id || ''),
+        title: String(r.title || ''),
+        author: String(r.author || ''),
+        subject: String(r.subject || ''),
+        category: String(r.category || ''),
+        content: String(r.content || ''),
+        date: String(r.date || '')
+      })).reverse();
+    }
+    return cachedEmails;
+  }
+
+  async function fetchCategories() {
+    const res = await apiGet('getCategories');
+    if (res.status === 'success' && res.data.length) {
+      cachedCategories = res.data.map(c => String(c));
+    }
+    return cachedCategories;
+  }
 
   function catColor(cat) {
-    const cats = loadCategories();
-    const i = cats.indexOf(cat);
+    const i = cachedCategories.indexOf(cat);
     return CAT_COLORS[(i >= 0 ? i : 0) % CAT_COLORS.length];
   }
 
   function fmtDate(iso) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    try {
+      const d = new Date(iso);
+      if (isNaN(d)) return iso;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch(e) { return iso; }
   }
 
   function esc(str) {
@@ -1106,6 +1167,7 @@
   function matchesDateFilter(isoDate, filter) {
     if (!filter) return true;
     const d = new Date(isoDate);
+    if (isNaN(d)) return true;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const emailDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -1129,6 +1191,7 @@
   /* ─── State ─── */
   let activeFilter = null;
   let pendingDeleteId = null;
+  let isLoading = false;
 
   /* ─── DOM Refs ─── */
   const $ = s => document.querySelector(s);
@@ -1154,7 +1217,7 @@
       if (btn.dataset.tab === 'library') {
         $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
         $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
-        renderLibrary();
+        loadAndRender();
       }
       if (btn.dataset.tab === 'add') {
         populateCatSelect();
@@ -1176,26 +1239,30 @@
     setTimeout(() => el.classList.remove('show'), 2600);
   }
 
+  /* ─── Loading indicator ─── */
+  function showLoading() {
+    const grid = $('#emailsGrid');
+    grid.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Loading emails...</p></div>';
+  }
+
   /* ─── Category Select ─── */
   function populateCatSelect() {
     const sel = $('#formCategory');
     const prev = sel.value;
-    const cats = loadCategories();
     sel.innerHTML = '<option value="">Select a category...</option>';
-    cats.forEach(c => {
+    cachedCategories.forEach(c => {
       const o = document.createElement('option');
       o.value = c; o.textContent = c;
       sel.appendChild(o);
     });
-    if (prev && cats.includes(prev)) sel.value = prev;
+    if (prev && cachedCategories.includes(prev)) sel.value = prev;
   }
 
   /* ─── Author Filter Populate ─── */
   function populateAuthorFilter() {
     const sel = $('#authorFilter');
     const prev = sel.value;
-    const emails = loadEmails();
-    const authors = [...new Set(emails.map(e => e.author).filter(Boolean))].sort();
+    const authors = [...new Set(cachedEmails.map(e => e.author).filter(Boolean))].sort();
     sel.innerHTML = '<option value="">All Authors</option>';
     authors.forEach(a => {
       const o = document.createElement('option');
@@ -1216,16 +1283,16 @@
     $('#newCatInput').value = '';
   });
 
-  function addNewCategory() {
+  async function addNewCategory() {
     const name = $('#newCatInput').value.trim();
     if (!name) return;
-    const cats = loadCategories();
-    if (cats.some(c => c.toLowerCase() === name.toLowerCase())) {
+    if (cachedCategories.some(c => c.toLowerCase() === name.toLowerCase())) {
       toast('Category already exists');
       return;
     }
-    cats.push(name);
-    saveCategories(cats);
+    // Add to sheet
+    await apiPost({ action: 'addCategory', name });
+    cachedCategories.push(name);
     populateCatSelect();
     $('#formCategory').value = name;
     $('#newCatInline').classList.remove('show');
@@ -1260,7 +1327,7 @@
   });
 
   /* ─── Form Submit ─── */
-  $('#emailForm').addEventListener('submit', e => {
+  $('#emailForm').addEventListener('submit', async e => {
     e.preventDefault();
     const title = $('#formTitle').value.trim();
     const author = $('#formAuthor').value.trim();
@@ -1270,27 +1337,39 @@
 
     if (!title || !category || !content) return;
 
-    const emails = loadEmails();
-    emails.unshift({ id: uid(), title, author, subject, category, content, date: new Date().toISOString() });
-    saveEmails(emails);
+    const submitBtn = $('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
 
-    // Reset form
-    $('#formTitle').value = '';
-    $('#formAuthor').value = '';
-    $('#formSubject').value = '';
-    $('#formCategory').value = '';
-    textarea.value = '';
-    updateHint();
-    toast(randomFrom(SAVE_ENCOURAGEMENTS));
+    const emailData = { id: uid(), title, author, subject, category, content, date: new Date().toISOString() };
 
-    // Switch to library
-    $$('.tab-btn').forEach(b => b.classList.remove('active'));
-    $$('.tab-btn')[0].classList.add('active');
-    $$('.view').forEach(v => v.classList.remove('active'));
-    $('#view-library').classList.add('active');
-    $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
-    $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
-    renderLibrary();
+    try {
+      await apiPost({ action: 'addEmail', data: emailData });
+      cachedEmails.unshift(emailData);
+
+      // Reset form
+      $('#formTitle').value = '';
+      $('#formAuthor').value = '';
+      $('#formSubject').value = '';
+      $('#formCategory').value = '';
+      textarea.value = '';
+      updateHint();
+      toast(randomFrom(SAVE_ENCOURAGEMENTS));
+
+      // Switch to library
+      $$('.tab-btn').forEach(b => b.classList.remove('active'));
+      $$('.tab-btn')[0].classList.add('active');
+      $$('.view').forEach(v => v.classList.remove('active'));
+      $('#view-library').classList.add('active');
+      $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
+      $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
+      renderLibrary();
+    } catch(err) {
+      toast('Error saving — please try again');
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Save Email';
   });
 
   /* ─── Clear Filters ─── */
@@ -1310,16 +1389,24 @@
   function updateClearBtn() {
     const hasFilters = activeFilter || $('#authorFilter').value || $('#dateFilter').value || $('#searchInput').value.trim();
     $('#clearFilters').style.display = hasFilters ? 'inline-block' : 'none';
-
-    // Style active selects
     $('#authorFilter').classList.toggle('active-filter', !!$('#authorFilter').value);
     $('#dateFilter').classList.toggle('active-filter', !!$('#dateFilter').value);
   }
 
-  /* ─── Render Library ─── */
+  /* ─── Load data from Google Sheets, then render ─── */
+  async function loadAndRender() {
+    if (isLoading) return;
+    isLoading = true;
+    showLoading();
+    await Promise.all([fetchEmails(), fetchCategories()]);
+    isLoading = false;
+    renderLibrary();
+  }
+
+  /* ─── Render Library (uses cached data) ─── */
   function renderLibrary() {
-    const emails = loadEmails();
-    const cats = loadCategories();
+    const emails = cachedEmails;
+    const cats = cachedCategories;
     const q = $('#searchInput').value.toLowerCase().trim();
     const authorVal = $('#authorFilter').value;
     const dateVal = $('#dateFilter').value;
@@ -1436,7 +1523,7 @@
     // Copy
     const copyBtn = e.target.closest('.copy-btn');
     if (copyBtn) {
-      const email = loadEmails().find(s => s.id === copyBtn.dataset.id);
+      const email = cachedEmails.find(s => s.id === copyBtn.dataset.id);
       if (email) {
         navigator.clipboard.writeText(email.content).then(() => {
           copyBtn.classList.add('copied');
@@ -1464,13 +1551,24 @@
     pendingDeleteId = null;
   });
 
-  $('#confirmDelete').addEventListener('click', () => {
+  $('#confirmDelete').addEventListener('click', async () => {
     if (!pendingDeleteId) return;
-    const emails = loadEmails().filter(s => s.id !== pendingDeleteId);
-    saveEmails(emails);
+    const btn = $('#confirmDelete');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+      await apiPost({ action: 'deleteEmail', id: pendingDeleteId });
+      cachedEmails = cachedEmails.filter(s => s.id !== pendingDeleteId);
+      toast('Email deleted');
+    } catch(e) {
+      toast('Error deleting — please try again');
+    }
+
     pendingDeleteId = null;
+    btn.disabled = false;
+    btn.textContent = 'Delete';
     $('#deleteModal').classList.remove('show');
-    toast('Email deleted');
     renderLibrary();
   });
 
@@ -1484,9 +1582,9 @@
   /* ─── Search ─── */
   $('#searchInput').addEventListener('input', renderLibrary);
 
-  /* ─── Init ─── */
+  /* ─── Init: Load from Google Sheets ─── */
+  loadAndRender();
   populateCatSelect();
-  renderLibrary();
 })();
 </script>
 </body>

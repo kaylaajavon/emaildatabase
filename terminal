@@ -1,0 +1,7 @@
+cd "/Users/kaylaslagter/Desktop/RefugePoint Claude"
+git init
+git add email-database.html
+git commit -m "Add Individual Giving Team Email Database"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/email-database.git
+git push -u origin main

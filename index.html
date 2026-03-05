@@ -55,7 +55,7 @@
     flex-shrink: 0;
   }
 
-  .croissant-icon {
+  .panda-icon {
     width: 42px;
     height: 42px;
     position: relative;
@@ -105,6 +105,19 @@
   .view { display: none; }
   .view.active { display: block; }
 
+  /* ─── Encouragement Banner ─── */
+  .encouragement-banner {
+    text-align: center;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--primary-light), #FDE8E0);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    border: 2px solid rgba(212,133,106,0.15);
+  }
+
   /* ─── Library Layout ─── */
   .library-layout {
     display: grid;
@@ -113,10 +126,10 @@
     align-items: start;
   }
 
-  /* ─── Search Bar ─── */
+  /* ─── Search & Filter Row ─── */
   .search-wrap {
     position: relative;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
 
   .search-wrap svg {
@@ -144,6 +157,53 @@
 
   .search-input:focus { border-color: var(--primary); }
   .search-input::placeholder { color: #C2A89E; }
+
+  /* ─── Advanced Filters Row ─── */
+  .filters-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-select {
+    padding: 8px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--bg-card);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-width: 150px;
+  }
+
+  .filter-select:focus { border-color: var(--primary); }
+
+  .filter-select.active-filter {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+  }
+
+  .clear-filters-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+
+  .clear-filters-btn:hover { background: var(--primary-light); }
 
   /* ─── Filter Chips ─── */
   .filter-chips {
@@ -192,14 +252,14 @@
     color: #fff;
   }
 
-  /* ─── Snippet Cards ─── */
-  .snippets-grid {
+  /* ─── Email Cards ─── */
+  .emails-grid {
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
 
-  .snippet-card {
+  .email-card {
     background: var(--bg-card);
     border-radius: var(--radius);
     padding: 22px 24px;
@@ -208,7 +268,7 @@
     border: 2px solid transparent;
   }
 
-  .snippet-card:hover {
+  .email-card:hover {
     box-shadow: var(--shadow-hover);
     border-color: var(--primary-light);
   }
@@ -238,6 +298,18 @@
     white-space: nowrap;
     flex-shrink: 0;
     letter-spacing: 0.3px;
+  }
+
+  .card-subject {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .card-subject span {
+    font-weight: 600;
+    color: var(--text-light);
   }
 
   .card-author {
@@ -334,6 +406,7 @@
     border-radius: var(--radius);
     padding: 22px;
     box-shadow: var(--shadow);
+    margin-bottom: 16px;
   }
 
   .sidebar-title {
@@ -390,8 +463,26 @@
     border-radius: 10px;
   }
 
-  /* ─── Add Snippet View ─── */
-  .add-snippet-layout {
+  /* ─── Sidebar Motivational ─── */
+  .sidebar-motivation {
+    background: linear-gradient(135deg, #FDE8E0, var(--primary-light));
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar-motivation .panda-icon { width: 48px; height: 48px; margin: 0 auto 8px; }
+
+  .sidebar-motivation p {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.4;
+  }
+
+  /* ─── Add Email View ─── */
+  .add-email-layout {
     max-width: 660px;
     margin: 0 auto;
   }
@@ -408,7 +499,7 @@
     margin-bottom: 6px;
   }
 
-  .form-hero .croissant-icon { width: 80px; height: 80px; margin: 0 auto; }
+  .form-hero .panda-icon { width: 80px; height: 80px; margin: 0 auto; }
 
   .form-title {
     font-size: 24px;
@@ -599,6 +690,7 @@
 
   .empty-state svg { width: 56px; height: 56px; margin-bottom: 14px; color: var(--accent); }
   .empty-state p { font-size: 15px; font-weight: 600; }
+  .empty-state .encourage { font-size: 13px; color: var(--primary); margin-top: 6px; }
 
   /* ─── Confirmation Modal ─── */
   .modal-overlay {
@@ -702,6 +794,8 @@
     .form-card { padding: 24px 20px; }
     .cat-row { flex-direction: column; align-items: stretch; }
     .new-cat-btn { align-self: flex-start; }
+    .filters-row { flex-direction: column; align-items: stretch; }
+    .filter-select { min-width: unset; }
   }
 </style>
 </head>
@@ -710,34 +804,40 @@
 <!-- ─── Header ─── -->
 <header class="header">
   <div class="header-logo">
-    <!-- Cute Croissant Icon with face -->
-    <svg class="croissant-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cute Panda Icon -->
+    <svg class="panda-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="60" cy="60" r="56" fill="#E8A88C" opacity="0.35"/>
       <circle cx="60" cy="60" r="44" fill="#F5D5C8" opacity="0.4"/>
-      <!-- Croissant body -->
-      <path d="M30 68C28 55 35 42 48 36C42 42 40 52 44 60C47 66 53 70 60 70C67 70 73 66 76 60C80 52 78 42 72 36C85 42 92 55 90 68C88 82 76 92 62 94C48 94 34 82 30 68Z" fill="#D4856A"/>
-      <!-- Croissant ridges -->
-      <path d="M48 36C44 44 44 54 50 62C52 52 50 42 48 36Z" fill="#C07558" opacity="0.4"/>
-      <path d="M60 34C58 44 58 56 62 64C64 54 62 42 60 34Z" fill="#C07558" opacity="0.35"/>
-      <path d="M72 36C76 44 76 54 70 62C68 52 70 42 72 36Z" fill="#C07558" opacity="0.4"/>
-      <!-- Light highlight -->
-      <path d="M38 60C36 52 40 44 48 40C44 48 44 56 48 64C42 64 38 62 38 60Z" fill="#F5D5C8" opacity="0.5"/>
-      <!-- Cute face -->
-      <circle cx="50" cy="62" r="3.2" fill="#3D2B24"/>
-      <circle cx="70" cy="62" r="3.2" fill="#3D2B24"/>
-      <circle cx="51.2" cy="60.8" r="1.2" fill="#fff"/>
-      <circle cx="71.2" cy="60.8" r="1.2" fill="#fff"/>
-      <!-- Smile -->
-      <path d="M55 70 Q60 75 65 70" stroke="#3D2B24" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <!-- Ears -->
+      <circle cx="36" cy="34" r="14" fill="#2D2D2D"/>
+      <circle cx="84" cy="34" r="14" fill="#2D2D2D"/>
+      <circle cx="36" cy="34" r="8" fill="#4A4A4A"/>
+      <circle cx="84" cy="34" r="8" fill="#4A4A4A"/>
+      <!-- Head -->
+      <ellipse cx="60" cy="62" rx="32" ry="30" fill="#FFFFFF"/>
+      <!-- Eye patches -->
+      <ellipse cx="45" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(-10 45 56)"/>
+      <ellipse cx="75" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(10 75 56)"/>
+      <!-- Eyes -->
+      <circle cx="45" cy="56" r="5" fill="#FFFFFF"/>
+      <circle cx="75" cy="56" r="5" fill="#FFFFFF"/>
+      <circle cx="46" cy="55" r="3" fill="#2D2D2D"/>
+      <circle cx="76" cy="55" r="3" fill="#2D2D2D"/>
+      <circle cx="47" cy="54" r="1.2" fill="#FFFFFF"/>
+      <circle cx="77" cy="54" r="1.2" fill="#FFFFFF"/>
+      <!-- Nose -->
+      <ellipse cx="60" cy="66" rx="4" ry="3" fill="#2D2D2D"/>
+      <!-- Mouth -->
+      <path d="M55 70 Q60 75 65 70" stroke="#2D2D2D" stroke-width="2" fill="none" stroke-linecap="round"/>
       <!-- Blush -->
-      <ellipse cx="42" cy="67" rx="5" ry="3.5" fill="#F5A0A0" opacity="0.35"/>
-      <ellipse cx="78" cy="67" rx="5" ry="3.5" fill="#F5A0A0" opacity="0.35"/>
+      <ellipse cx="38" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
+      <ellipse cx="82" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
     </svg>
     <span class="header-title">Individual Giving Team<br>Email Database</span>
   </div>
   <nav class="header-tabs">
     <button class="tab-btn active" data-tab="library">Library</button>
-    <button class="tab-btn" data-tab="add">+ Add Snippet</button>
+    <button class="tab-btn" data-tab="add">+ Add Email</button>
   </nav>
 </header>
 
@@ -746,17 +846,32 @@
 
   <!-- ═══ LIBRARY VIEW ═══ -->
   <div id="view-library" class="view active">
+    <div id="libraryBanner" class="encouragement-banner"></div>
     <div class="library-layout">
       <div class="library-main">
         <!-- Search -->
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="searchInput" class="search-input" placeholder="Search by title, text, author, or category...">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by title, subject, text, author, or category...">
         </div>
-        <!-- Filter Chips -->
+        <!-- Advanced Filters -->
+        <div class="filters-row">
+          <select id="authorFilter" class="filter-select">
+            <option value="">All Authors</option>
+          </select>
+          <select id="dateFilter" class="filter-select">
+            <option value="">All Dates</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="older">Older</option>
+          </select>
+          <button id="clearFilters" class="clear-filters-btn" style="display:none">Clear Filters</button>
+        </div>
+        <!-- Category Filter Chips -->
         <div id="filterChips" class="filter-chips"></div>
         <!-- Cards -->
-        <div id="snippetsGrid" class="snippets-grid"></div>
+        <div id="emailsGrid" class="emails-grid"></div>
       </div>
 
       <!-- Sidebar -->
@@ -768,36 +883,65 @@
           </div>
           <ul id="sidebarCats" class="cat-list"></ul>
         </div>
+        <!-- Motivational Sidebar Card -->
+        <div class="sidebar-motivation">
+          <svg class="panda-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px">
+            <circle cx="60" cy="60" r="56" fill="#E8A88C" opacity="0.35"/>
+            <circle cx="36" cy="34" r="14" fill="#2D2D2D"/>
+            <circle cx="84" cy="34" r="14" fill="#2D2D2D"/>
+            <circle cx="36" cy="34" r="8" fill="#4A4A4A"/>
+            <circle cx="84" cy="34" r="8" fill="#4A4A4A"/>
+            <ellipse cx="60" cy="62" rx="32" ry="30" fill="#FFFFFF"/>
+            <ellipse cx="45" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(-10 45 56)"/>
+            <ellipse cx="75" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(10 75 56)"/>
+            <circle cx="45" cy="56" r="5" fill="#FFFFFF"/>
+            <circle cx="75" cy="56" r="5" fill="#FFFFFF"/>
+            <circle cx="46" cy="55" r="3" fill="#2D2D2D"/>
+            <circle cx="76" cy="55" r="3" fill="#2D2D2D"/>
+            <circle cx="47" cy="54" r="1.2" fill="#FFFFFF"/>
+            <circle cx="77" cy="54" r="1.2" fill="#FFFFFF"/>
+            <ellipse cx="60" cy="66" rx="4" ry="3" fill="#2D2D2D"/>
+            <path d="M55 70 Q60 75 65 70" stroke="#2D2D2D" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="38" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
+            <ellipse cx="82" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
+          </svg>
+          <p id="sidebarMotivation"></p>
+        </div>
       </aside>
     </div>
   </div>
 
-  <!-- ═══ ADD SNIPPET VIEW ═══ -->
+  <!-- ═══ ADD EMAIL VIEW ═══ -->
   <div id="view-add" class="view">
-    <div class="add-snippet-layout">
+    <div class="add-email-layout">
       <div class="form-card">
         <div class="form-hero">
-          <svg class="croissant-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:80px;height:80px">
+          <svg class="panda-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:80px;height:80px">
             <circle cx="60" cy="60" r="56" fill="#E8A88C" opacity="0.35"/>
             <circle cx="60" cy="60" r="44" fill="#F5D5C8" opacity="0.4"/>
-            <path d="M30 68C28 55 35 42 48 36C42 42 40 52 44 60C47 66 53 70 60 70C67 70 73 66 76 60C80 52 78 42 72 36C85 42 92 55 90 68C88 82 76 92 62 94C48 94 34 82 30 68Z" fill="#D4856A"/>
-            <path d="M48 36C44 44 44 54 50 62C52 52 50 42 48 36Z" fill="#C07558" opacity="0.4"/>
-            <path d="M60 34C58 44 58 56 62 64C64 54 62 42 60 34Z" fill="#C07558" opacity="0.35"/>
-            <path d="M72 36C76 44 76 54 70 62C68 52 70 42 72 36Z" fill="#C07558" opacity="0.4"/>
-            <path d="M38 60C36 52 40 44 48 40C44 48 44 56 48 64C42 64 38 62 38 60Z" fill="#F5D5C8" opacity="0.5"/>
-            <circle cx="50" cy="62" r="3.2" fill="#3D2B24"/>
-            <circle cx="70" cy="62" r="3.2" fill="#3D2B24"/>
-            <circle cx="51.2" cy="60.8" r="1.2" fill="#fff"/>
-            <circle cx="71.2" cy="60.8" r="1.2" fill="#fff"/>
-            <path d="M55 70 Q60 75 65 70" stroke="#3D2B24" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-            <ellipse cx="42" cy="67" rx="5" ry="3.5" fill="#F5A0A0" opacity="0.35"/>
-            <ellipse cx="78" cy="67" rx="5" ry="3.5" fill="#F5A0A0" opacity="0.35"/>
+            <circle cx="36" cy="34" r="14" fill="#2D2D2D"/>
+            <circle cx="84" cy="34" r="14" fill="#2D2D2D"/>
+            <circle cx="36" cy="34" r="8" fill="#4A4A4A"/>
+            <circle cx="84" cy="34" r="8" fill="#4A4A4A"/>
+            <ellipse cx="60" cy="62" rx="32" ry="30" fill="#FFFFFF"/>
+            <ellipse cx="45" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(-10 45 56)"/>
+            <ellipse cx="75" cy="56" rx="12" ry="10" fill="#2D2D2D" transform="rotate(10 75 56)"/>
+            <circle cx="45" cy="56" r="5" fill="#FFFFFF"/>
+            <circle cx="75" cy="56" r="5" fill="#FFFFFF"/>
+            <circle cx="46" cy="55" r="3" fill="#2D2D2D"/>
+            <circle cx="76" cy="55" r="3" fill="#2D2D2D"/>
+            <circle cx="47" cy="54" r="1.2" fill="#FFFFFF"/>
+            <circle cx="77" cy="54" r="1.2" fill="#FFFFFF"/>
+            <ellipse cx="60" cy="66" rx="4" ry="3" fill="#2D2D2D"/>
+            <path d="M55 70 Q60 75 65 70" stroke="#2D2D2D" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="38" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
+            <ellipse cx="82" cy="68" rx="6" ry="4" fill="#F5A0A0" opacity="0.4"/>
           </svg>
         </div>
-        <h2 class="form-title">Add New Snippet</h2>
-        <p class="form-subtitle">Save an email snippet for the team to reference</p>
+        <h2 class="form-title">Add New Email</h2>
+        <p class="form-subtitle" id="formEncourage">You're doing amazing — let's save this for the team!</p>
 
-        <form id="snippetForm">
+        <form id="emailForm">
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Title <span class="req">*</span></label>
@@ -807,6 +951,11 @@
               <label class="form-label">Author</label>
               <input type="text" id="formAuthor" class="form-input" placeholder="e.g. Jane Smith">
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Subject Line</label>
+            <input type="text" id="formSubject" class="form-input" placeholder="e.g. Following up on our conversation...">
           </div>
 
           <div class="form-group">
@@ -827,17 +976,17 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Snippet Content <span class="req">*</span></label>
+            <label class="form-label">Email Content <span class="req">*</span></label>
             <div class="dropzone" id="dropzone">
               <textarea id="formContent" class="dropzone-textarea" required></textarea>
               <div id="dropzoneHint" class="dropzone-hint">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Paste or drag &amp; drop text here
+                Paste or drag &amp; drop email text here
               </div>
             </div>
           </div>
 
-          <button type="submit" class="submit-btn">Save Snippet</button>
+          <button type="submit" class="submit-btn">Save Email</button>
         </form>
       </div>
     </div>
@@ -851,8 +1000,8 @@
     <div class="modal-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
     </div>
-    <h3>Delete this snippet?</h3>
-    <p>This can't be undone. The snippet will be permanently removed from the library.</p>
+    <h3>Delete this email?</h3>
+    <p>This can't be undone. The email will be permanently removed from the library.</p>
     <div class="modal-actions">
       <button class="modal-btn" id="cancelDelete">Keep it</button>
       <button class="modal-btn danger" id="confirmDelete">Delete</button>
@@ -875,6 +1024,42 @@
     '#5BBCAD', '#D46A9F', '#7E8BD4', '#D49F6A', '#6AC4C4'
   ];
 
+  /* ─── Encouraging Messages ─── */
+  const ENCOURAGEMENTS = [
+    "You've got this! Every email makes a difference.",
+    "You're a rockstar! Keep up the amazing work.",
+    "The team is lucky to have you! Keep shining.",
+    "One email at a time — you're changing lives!",
+    "Your words matter. Keep being incredible!",
+    "Look at you go! Fundraising superstar!",
+    "You're making the world a better place, one email at a time.",
+    "Keep going — great things are happening!",
+    "Your dedication is truly inspiring!",
+    "Every connection counts. You're doing beautifully!",
+    "Teamwork makes the dream work — and you're a dream teammate!",
+    "You bring so much heart to this work. Never forget that!"
+  ];
+
+  const SAVE_ENCOURAGEMENTS = [
+    "Email saved! You're on fire!",
+    "Saved! The team will love this one.",
+    "Nice work! Another great email in the library.",
+    "Boom! Saved and ready to go!",
+    "Added! You're building something amazing.",
+    "Saved! Your team thanks you!"
+  ];
+
+  const BANNER_MESSAGES = [
+    "Welcome back, superstar! Ready to write some great emails?",
+    "You're making a difference every single day!",
+    "The library is growing thanks to amazing people like you!",
+    "Hey there, rockstar! Let's find the perfect email.",
+    "Your team appreciates everything you do!",
+    "Another day, another chance to make an impact!"
+  ];
+
+  function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
   /* ─── Storage Helpers ─── */
   function loadCategories() {
     try {
@@ -888,14 +1073,14 @@
 
   function saveCategories(c) { localStorage.setItem(CAT_KEY, JSON.stringify(c)); }
 
-  function loadSnippets() {
+  function loadEmails() {
     try {
       const s = localStorage.getItem(STORAGE_KEY);
       return s ? JSON.parse(s) : [];
     } catch(e) { return []; }
   }
 
-  function saveSnippets(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+  function saveEmails(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
 
   function catColor(cat) {
     const cats = loadCategories();
@@ -917,6 +1102,30 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
+  /* ─── Date Filter Helper ─── */
+  function matchesDateFilter(isoDate, filter) {
+    if (!filter) return true;
+    const d = new Date(isoDate);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const emailDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    if (filter === 'today') return emailDay.getTime() === today.getTime();
+    if (filter === 'week') {
+      const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+      return emailDay >= weekAgo;
+    }
+    if (filter === 'month') {
+      const monthAgo = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return emailDay >= monthAgo;
+    }
+    if (filter === 'older') {
+      const monthAgo = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return emailDay < monthAgo;
+    }
+    return true;
+  }
+
   /* ─── State ─── */
   let activeFilter = null;
   let pendingDeleteId = null;
@@ -925,6 +1134,16 @@
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
 
+  /* ─── Set encouragement messages ─── */
+  $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
+  $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
+  $('#formEncourage').textContent = randomFrom([
+    "You're doing amazing — let's save this for the team!",
+    "Another great email incoming! You've got this!",
+    "Your contributions make a real impact. Let's add another!",
+    "The team will thank you for this one!"
+  ]);
+
   /* ─── Tabs ─── */
   $$('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -932,8 +1151,20 @@
       btn.classList.add('active');
       $$('.view').forEach(v => v.classList.remove('active'));
       $('#view-' + btn.dataset.tab).classList.add('active');
-      if (btn.dataset.tab === 'library') renderLibrary();
-      if (btn.dataset.tab === 'add') populateCatSelect();
+      if (btn.dataset.tab === 'library') {
+        $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
+        $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
+        renderLibrary();
+      }
+      if (btn.dataset.tab === 'add') {
+        populateCatSelect();
+        $('#formEncourage').textContent = randomFrom([
+          "You're doing amazing — let's save this for the team!",
+          "Another great email incoming! You've got this!",
+          "Your contributions make a real impact. Let's add another!",
+          "The team will thank you for this one!"
+        ]);
+      }
     });
   });
 
@@ -942,7 +1173,7 @@
     const el = $('#toast');
     el.textContent = msg;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2200);
+    setTimeout(() => el.classList.remove('show'), 2600);
   }
 
   /* ─── Category Select ─── */
@@ -957,6 +1188,21 @@
       sel.appendChild(o);
     });
     if (prev && cats.includes(prev)) sel.value = prev;
+  }
+
+  /* ─── Author Filter Populate ─── */
+  function populateAuthorFilter() {
+    const sel = $('#authorFilter');
+    const prev = sel.value;
+    const emails = loadEmails();
+    const authors = [...new Set(emails.map(e => e.author).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All Authors</option>';
+    authors.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      sel.appendChild(o);
+    });
+    if (prev) sel.value = prev;
   }
 
   /* ─── New Category Inline ─── */
@@ -984,7 +1230,7 @@
     $('#formCategory').value = name;
     $('#newCatInline').classList.remove('show');
     $('#newCatInput').value = '';
-    toast('Category added!');
+    toast('Category added! Nice one!');
   }
 
   $('#newCatAdd').addEventListener('click', addNewCategory);
@@ -1014,45 +1260,77 @@
   });
 
   /* ─── Form Submit ─── */
-  $('#snippetForm').addEventListener('submit', e => {
+  $('#emailForm').addEventListener('submit', e => {
     e.preventDefault();
     const title = $('#formTitle').value.trim();
     const author = $('#formAuthor').value.trim();
+    const subject = $('#formSubject').value.trim();
     const category = $('#formCategory').value;
     const content = textarea.value.trim();
 
     if (!title || !category || !content) return;
 
-    const snippets = loadSnippets();
-    snippets.unshift({ id: uid(), title, author, category, content, date: new Date().toISOString() });
-    saveSnippets(snippets);
+    const emails = loadEmails();
+    emails.unshift({ id: uid(), title, author, subject, category, content, date: new Date().toISOString() });
+    saveEmails(emails);
 
     // Reset form
     $('#formTitle').value = '';
     $('#formAuthor').value = '';
+    $('#formSubject').value = '';
     $('#formCategory').value = '';
     textarea.value = '';
     updateHint();
-    toast('Snippet saved!');
+    toast(randomFrom(SAVE_ENCOURAGEMENTS));
 
     // Switch to library
     $$('.tab-btn').forEach(b => b.classList.remove('active'));
     $$('.tab-btn')[0].classList.add('active');
     $$('.view').forEach(v => v.classList.remove('active'));
     $('#view-library').classList.add('active');
+    $('#libraryBanner').textContent = randomFrom(BANNER_MESSAGES);
+    $('#sidebarMotivation').textContent = randomFrom(ENCOURAGEMENTS);
     renderLibrary();
   });
 
+  /* ─── Clear Filters ─── */
+  $('#clearFilters').addEventListener('click', () => {
+    activeFilter = null;
+    $('#authorFilter').value = '';
+    $('#dateFilter').value = '';
+    $('#searchInput').value = '';
+    renderLibrary();
+  });
+
+  /* ─── Filter change listeners ─── */
+  $('#authorFilter').addEventListener('change', renderLibrary);
+  $('#dateFilter').addEventListener('change', renderLibrary);
+
+  /* ─── Update clear button visibility ─── */
+  function updateClearBtn() {
+    const hasFilters = activeFilter || $('#authorFilter').value || $('#dateFilter').value || $('#searchInput').value.trim();
+    $('#clearFilters').style.display = hasFilters ? 'inline-block' : 'none';
+
+    // Style active selects
+    $('#authorFilter').classList.toggle('active-filter', !!$('#authorFilter').value);
+    $('#dateFilter').classList.toggle('active-filter', !!$('#dateFilter').value);
+  }
+
   /* ─── Render Library ─── */
   function renderLibrary() {
-    const snippets = loadSnippets();
+    const emails = loadEmails();
     const cats = loadCategories();
     const q = $('#searchInput').value.toLowerCase().trim();
+    const authorVal = $('#authorFilter').value;
+    const dateVal = $('#dateFilter').value;
+
+    populateAuthorFilter();
+    updateClearBtn();
 
     // Counts
     const counts = {};
     cats.forEach(c => counts[c] = 0);
-    snippets.forEach(s => { if (counts[s.category] !== undefined) counts[s.category]++; });
+    emails.forEach(s => { if (counts[s.category] !== undefined) counts[s.category]++; });
 
     // ─ Filter Chips ─
     const chipsEl = $('#filterChips');
@@ -1066,7 +1344,7 @@
       chipsEl.appendChild(btn);
     }
 
-    makeChip('All', snippets.length, activeFilter === null, () => { activeFilter = null; renderLibrary(); });
+    makeChip('All', emails.length, activeFilter === null, () => { activeFilter = null; renderLibrary(); });
     cats.forEach(c => {
       makeChip(c, counts[c] || 0, activeFilter === c, () => {
         activeFilter = activeFilter === c ? null : c;
@@ -1087,23 +1365,28 @@
     });
 
     // ─ Filter ─
-    let filtered = snippets;
+    let filtered = emails;
     if (activeFilter) filtered = filtered.filter(s => s.category === activeFilter);
+    if (authorVal) filtered = filtered.filter(s => s.author === authorVal);
+    if (dateVal) filtered = filtered.filter(s => matchesDateFilter(s.date, dateVal));
     if (q) filtered = filtered.filter(s =>
       s.title.toLowerCase().includes(q) ||
       s.content.toLowerCase().includes(q) ||
       s.author.toLowerCase().includes(q) ||
-      s.category.toLowerCase().includes(q)
+      s.category.toLowerCase().includes(q) ||
+      (s.subject && s.subject.toLowerCase().includes(q))
     );
 
     // ─ Render Cards ─
-    const grid = $('#snippetsGrid');
+    const grid = $('#emailsGrid');
     grid.innerHTML = '';
 
     if (!filtered.length) {
       grid.innerHTML = '<div class="empty-state">'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'
-        + '<p>' + (q || activeFilter ? 'No snippets match your search.' : 'No snippets yet — add one to get started!') + '</p></div>';
+        + '<p>' + (q || activeFilter || authorVal || dateVal ? 'No emails match your filters.' : 'No emails yet — add one to get started!') + '</p>'
+        + '<p class="encourage">' + (q || activeFilter || authorVal || dateVal ? 'Try adjusting your filters — you\'ve got great stuff in here!' : 'You\'ve got this! Click "+ Add Email" to begin.') + '</p>'
+        + '</div>';
       return;
     }
 
@@ -1111,12 +1394,13 @@
       const isLong = s.content.length > 280;
       const color = catColor(s.category);
       const card = document.createElement('div');
-      card.className = 'snippet-card';
+      card.className = 'email-card';
       card.innerHTML =
         '<div class="card-top">'
           + '<span class="card-title">' + esc(s.title) + '</span>'
           + '<span class="card-badge" style="background:' + color + '">' + esc(s.category) + '</span>'
         + '</div>'
+        + (s.subject ? '<div class="card-subject"><span>Subject: </span>' + esc(s.subject) + '</div>' : '')
         + (s.author ? '<div class="card-author">By ' + esc(s.author) + '</div>' : '')
         + '<div class="card-text' + (isLong ? ' collapsed' : '') + '" data-id="' + s.id + '">' + esc(s.content) + '</div>'
         + (isLong ? '<button class="show-more-btn" data-id="' + s.id + '">Show more</button>' : '')
@@ -1138,7 +1422,7 @@
   }
 
   /* ─── Grid Event Delegation ─── */
-  $('#snippetsGrid').addEventListener('click', e => {
+  $('#emailsGrid').addEventListener('click', e => {
     // Show more / less
     const showBtn = e.target.closest('.show-more-btn');
     if (showBtn) {
@@ -1152,9 +1436,9 @@
     // Copy
     const copyBtn = e.target.closest('.copy-btn');
     if (copyBtn) {
-      const snippet = loadSnippets().find(s => s.id === copyBtn.dataset.id);
-      if (snippet) {
-        navigator.clipboard.writeText(snippet.content).then(() => {
+      const email = loadEmails().find(s => s.id === copyBtn.dataset.id);
+      if (email) {
+        navigator.clipboard.writeText(email.content).then(() => {
           copyBtn.classList.add('copied');
           copyBtn.querySelector('span').textContent = 'Copied!';
           setTimeout(() => {
@@ -1182,11 +1466,11 @@
 
   $('#confirmDelete').addEventListener('click', () => {
     if (!pendingDeleteId) return;
-    const snippets = loadSnippets().filter(s => s.id !== pendingDeleteId);
-    saveSnippets(snippets);
+    const emails = loadEmails().filter(s => s.id !== pendingDeleteId);
+    saveEmails(emails);
     pendingDeleteId = null;
     $('#deleteModal').classList.remove('show');
-    toast('Snippet deleted');
+    toast('Email deleted');
     renderLibrary();
   });
 
